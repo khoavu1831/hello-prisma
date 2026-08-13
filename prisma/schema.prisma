@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Supplier {
+  id               Int               @id @default(autoincrement())
+  name             String
+  purchaseReceipts PurchaseReceipt[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  salePrice            Int                   @default(0)
+  purchaseReceiptItems PurchaseReceiptItem[]
+  inventory            Inventory?
+
+  @@map("products")
+}
+
+model Inventory {
+  id        Int     @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int     @unique
+  stock     Int     @default(0)
+
+  @@map("inventories")
+}
+
+model PurchaseReceipt {
+  id                   Int                   @id @default(autoincrement())
+  supplier             Supplier              @relation(fields: [supplierId], references: [id])
+  supplierId           Int
+  status               STATUS                @default(DRAFT)
+  receivedAt           DateTime?
+  createdAt            DateTime              @default(now())
+  purchaseReceiptItems PurchaseReceiptItem[]
+
+  @@map("purchase_receipts")
+}
+
+model PurchaseReceiptItem {
+  id                Int             @id @default(autoincrement())
+  product           Product         @relation(fields: [productId], references: [id])
+  productId         Int
+  purchaseReceipt   PurchaseReceipt @relation(fields: [purchaseReceiptId], references: [id])
+  purchaseReceiptId Int
+  quantity          Int
+  price             Int
+
+  @@map("purchase_receipt_items")
+}
+
+enum STATUS {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
