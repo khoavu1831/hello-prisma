@@ -30,7 +30,7 @@ export class SuppliersService {
   }
 
   async pagination(paginationDto: PaginationDto) {
-    return await this.supplierRepository.pagination(paginationDto);
+    return this.supplierRepository.pagination(paginationDto);
   }
 
   // POST methods 
