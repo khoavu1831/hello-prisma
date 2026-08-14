@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import { STATUS } from '../generated/prisma/enums.js';
 import { CreatePurchaseReceiptDto } from './dto/create-purchase_receipt.dto.js';
-import { UpdatePurchaseReceiptItemDto } from '../purchase-receipt-items/dto/update-purchase-receipt-item.dto.js';
 import { UpdateStatusPurchaseReceiptDto } from './dto/update-purchase_receipt.dto.js';
+import { Prisma } from '../generated/prisma/client.js';
 
 @Injectable()
 export class PurchaseReceiptsRepository {
@@ -53,6 +53,42 @@ export class PurchaseReceiptsRepository {
       },
       where: {
         id: id,
+      }
+    })
+  }
+
+  // xac nhan nhap kho:
+  // 1. kiem tra ton tai phieu nhap?
+  async findReceiptForConfirm(tx: Prisma.TransactionClient, id: number) {
+    return tx.purchaseReceipt.findUnique({
+      where: { id: id },
+      include: { purchaseReceiptItems: true },
+    })
+  }
+
+  // 2. xac nhan va cap nhat
+  async confirmReceipt(tx: Prisma.TransactionClient, id: number) {
+    return tx.purchaseReceipt.update({
+      where: { id: id },
+      data: {
+        status: STATUS.CONFIRMED,
+        receivedAt: new Date(),
+      }
+    })
+  }
+
+  // 3. cap nhat kho 
+  async updateInventory(tx: Prisma.TransactionClient, productId: number, quantity: number) {
+    return tx.inventory.upsert({
+      where: { productId },
+      update: {
+        stock: {
+          increment: quantity,
+        }
+      },
+      create: {
+        productId,
+        stock: quantity,
       }
     })
   }

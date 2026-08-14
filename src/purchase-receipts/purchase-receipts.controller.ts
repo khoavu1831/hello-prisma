@@ -24,6 +24,11 @@ export class PurchaseReceiptsController {
     return this.purchaseReceiptsService.create(dto);
   }
 
+  @Post(':id/confirm')
+  async confirm(@Param('id', ParseIntPipe) id: number) {
+    return this.purchaseReceiptsService.confirmReceipt(id);
+  }
+
   // PUT 
   @Patch(':id/status')
   async updateStatus(
